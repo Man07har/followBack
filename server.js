@@ -6,6 +6,8 @@ const port = process.env.PORT || 5000;
 connectDb();
 app.use(express.json()); //middleware to parse the json data
 app.use("/api/contacts", require("./routes/contactRoutes")); //setting up the routes
+app.use("/api/users", require("./routes/userRoutes"));
+
 app.use(errorHandler); //middleware to handle errors
 app.listen(port, () => {
   console.log(`server running in port ${port}`);
