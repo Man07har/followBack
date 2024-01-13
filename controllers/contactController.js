@@ -2,15 +2,15 @@ const asyncHandler = require("express-async-handler");
 const Contact = require("../models/contactModel");
 //@desc get all contacts
 //@route GET /api/contacts
-//@access Public
+//@access private
 
 const getContact = asyncHandler(async (req, res) => {
-  const contact = await Contact.find();
+  const contact = await Contact.find({ user_id: req.user._id });
   res.json(contact);
 });
 //@desc CREATE all contacts
 //@route POST /api/contacts
-//@access Public
+//@access private
 const postContact = asyncHandler(async (req, res) => {
   console.log("the request body  is: ", req.body);
   const { name, email, phone } = req.body;
@@ -18,18 +18,28 @@ const postContact = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Please fill all the fields");
   }
-  const contact = await Contact.create({ name, email, phone });
+  const contact = await Contact.create({
+    name,
+    email,
+    phone,
+    user_id: req.user.id,
+  });
   res.json(contact);
 });
 
 //@desc UPDATE all contacts
 //@route PUT /api/contacts
-//@access Public
+//@access private
 const putContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
     res.Status(404);
     throw new Error("The contact you were trying to update is not found here");
+  }
+  if (contact.user_id.toString() !== req.user._id.toString()) {
+    // check if the user is the owner of the contact
+    res.status(401);
+    throw new Error("You are not authorized to update this contact");
   }
   const updatedContact = await Contact.findByIdAndUpdate(
     req.params.id,
@@ -41,20 +51,25 @@ const putContact = asyncHandler(async (req, res) => {
 
 //@desc DELETE contacts
 //@route DELETE /api/contacts
-//@access Public
+//@access private
 const deleteContact = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
     res.status(400);
     throw new Error("Contact not found to delete it");
   }
-  await Contact.remove();
+  if (contact.user_id.toString() !== req.user._id.toString()) {
+    // check if the user is the owner of the contact
+    res.status(401);
+    throw new Error("You are not authorized to delete this contact");
+  }
+  await Contact.deleteOne(_id:req.params.id)  // delete the contact);
   res.status(200).json(contact);
 });
 
 //@desc get contacts BY ID
 //@route GET /api/contacts
-//@access Public
+//@access private
 const getContactbyId = asyncHandler(async (req, res) => {
   const contact = await Contact.findById(req.params.id);
   if (!contact) {
