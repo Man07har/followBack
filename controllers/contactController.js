@@ -36,7 +36,7 @@ const putContact = asyncHandler(async (req, res) => {
     res.Status(404);
     throw new Error("The contact you were trying to update is not found here");
   }
-  if (contact.user_id.toString() !== req.user._id.toString()) {
+  if (contact.user_id.toString() !== req.user.id) {
     // check if the user is the owner of the contact
     res.status(401);
     throw new Error("You are not authorized to update this contact");
@@ -58,12 +58,12 @@ const deleteContact = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Contact not found to delete it");
   }
-  if (contact.user_id.toString() !== req.user._id.toString()) {
+  if (contact.user_id.toString() !== req.user.id) {
     // check if the user is the owner of the contact
     res.status(401);
     throw new Error("You are not authorized to delete this contact");
   }
-  await Contact.deleteOne(_id:req.params.id)  // delete the contact);
+  await Contact.deleteOne({ _id: req.params.id });
   res.status(200).json(contact);
 });
 
